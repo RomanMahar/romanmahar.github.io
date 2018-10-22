@@ -2,6 +2,7 @@
 	
 	var pluginName = 'ik_carousel',
 		defaults = { // default settings
+			'instructions': 'Carousel widget. Use left and right arrows to navigate between slides.',
 			'animationSpeed' : 3000
 		};
 	 
@@ -34,16 +35,23 @@
 		
 		$elem
 			.attr({
-				'id': id
+				'id': id,
+				'role': 'region', // assign region role
+				'tabindex': 0, // add into the tab order
+				'aria-describedby': id + '_instructions' // associate with instructions
 			})
 			.addClass('ik_carousel')
+			.on('keydown', {'plugin': plugin}, plugin.onKeyDown)
 			.on('mouseenter', {'plugin': plugin}, plugin.stopTimer)
 			.on('mouseleave', {'plugin': plugin}, plugin.startTimer)
+			.on('blur', {'plugin': plugin}, plugin.startTimer)
 		
 		$controls = $('<div/>')
-
-			.addClass('ik_controls')
-			.appendTo($elem);
+		    .attr({
+		        'aria-hidden': 'true' // hide controls from screen readers
+		    })
+		    .addClass('ik_controls')
+		    .appendTo($elem);
 				
 		$('<div/>')
 			.addClass('ik_button ik_prev')
@@ -54,6 +62,14 @@
 			.addClass('ik_button ik_next')
 			.on('click', {'plugin': plugin, 'slide': 'right'}, plugin.gotoSlide)
 			.appendTo($controls);
+		$('<div/>') // add instructions for screen reader users
+		   .attr({
+		       'id': id + '_instructions',
+		       'aria-hidden': 'true'
+		   })
+		   .text(this.options.instructions)
+		   .addClass('ik_readersonly')
+		   .appendTo($elem);
 		
 		$navbar = $('<ul/>')
 			.addClass('ik_navbar')
@@ -95,6 +111,9 @@
 		
 		$elem = $(this);
 		plugin = event.data.plugin;
+		if (event.type === 'focusout') {
+		    plugin.element.removeAttr('aria-live');
+		}
 		
 		if(plugin.timer) {
 			clearInterval(plugin.timer);
@@ -116,6 +135,10 @@
 		
 		var plugin = event.data.plugin;
 		clearInterval(plugin.timer);
+		if (event.type === 'focusin') {
+		   plugin.element.attr({'aria-live': 'polite'});
+		}
+
 		plugin.timer = null;
 		
 	};
@@ -165,18 +188,57 @@
 			active = $(this);
 			next = event.data.next;
 			dir = event.data.dir;
-			
-			active.off( ik_utils.getTransitionEventName() )
-				.removeClass(direction + ' active');
-				
-			next.removeClass('next')
-				.addClass('active');
-			
+
+			active
+			    .attr({
+			        'aria-hidden': 'true',
+			    })
+			    .removeAttr('aria-live')
+			    .off( ik_utils.getTransitionEventName() )
+			    .removeClass(direction + ' active');
+			               
+			next
+			    .attr({
+			        'aria-hidden': 'false',
+			        'aria-live': 'polite'
+			    })
+			    .removeClass('next')
+			    .addClass('active');
 		});
 		
 		plugin.navbuttons.removeClass('active').eq(n).addClass('active');
 		
 	}
+
+	/**
+	* Handles keydown event on the next/prev links.
+	*
+	* @param {Object} event - Keyboard event.
+	* @param {object} event.data - Event data.
+	* @param {object} event.data.plugin - Reference to plugin.
+	*/
+	Plugin.prototype.onKeyDown = function (event) {
+	       
+	    var plugin = event.data.plugin;
+	       
+	    switch (event.keyCode) {
+	           
+	        case ik_utils.keys.left:
+	            event.data = {'plugin': plugin, 'slide': 'left'};
+	            plugin.stopTimer(event);
+	            plugin.gotoSlide(event);
+	            break;
+	        case ik_utils.keys.right:
+	            event.data = {'plugin': plugin, 'slide': 'right'};
+	            plugin.stopTimer(event);
+	            plugin.gotoSlide(event);
+	            break;
+	        case ik_utils.keys.esc:
+	        	plugin.startTimer;
+	            plugin.element.blur();
+	            break;
+	        }
+	    }
 	
 	$.fn[pluginName] = function ( options ) {
 		
