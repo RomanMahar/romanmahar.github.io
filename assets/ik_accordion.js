@@ -139,17 +139,18 @@
 			            'aria-expanded': false, // toggle expanded state
 					});
 					$($panel).attr({
-						'aria-hidden': true,
-					})
+						'aria-hidden': false,
+					});
 					$hdr.next().slideUp(plugin.options.animationSpeed);
 				} else {
+					console.log($($panel[0]));
 					$btn.addClass('expanded');
 					$($btn).attr({
 			            'aria-expanded': true, // toggle expanded state
 					});
 					$($panel).attr({
 						'aria-hidden': false,
-					})
+					});
 					$hdr.next().slideDown(plugin.options.animationSpeed);
 				}
 			});
@@ -158,6 +159,7 @@
 			isVisible = !!$panel.is(':visible');
 			// toggle expanded state
 			$($me[0]).attr({'aria-expanded': !isVisible });
+			$($panel[0]).attr({'aria-hidden': isVisible });
 			$panel.slideToggle({ duration: plugin.options.animationSpeed });
 			
 		}
