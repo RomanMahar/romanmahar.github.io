@@ -156,6 +156,7 @@
 			
 		} else { // toggle current panel depending on the state
 			isVisible = !!$panel.is(':visible');
+			// toggle expanded state
 			$($me[0]).attr({'aria-expanded': !isVisible });
 			$panel.slideToggle({ duration: plugin.options.animationSpeed });
 			
