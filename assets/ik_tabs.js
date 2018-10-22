@@ -34,7 +34,10 @@
 		
 		$tabbar = $('<ul/>') // create ul element to hold all tabs
 			.addClass('ik_tabbar cf')
-			.prependTo($elem);
+			.prependTo($elem)
+			.attr({
+			    'role': 'tablist' // add tablistr role
+			});
 		
 		plugin.panels = $elem // initialize panels and create tabs
 			.children('div')
@@ -43,7 +46,10 @@
 				var $tab, $panel, lbl;
 				
 				$panel = $(el).attr({
-					'id': id + '_panel' + i  // add unique id for a panel					
+					'id': id + '_panel' + i,
+					'role': 'tabpanel', // add tabpanel role
+					'aria-hidden': true, // initially hide from screen readers
+					'tabindex': 0 // add to tab order
 				})
 				.addClass('ik_tabpanel')
 				.hide();
@@ -53,7 +59,9 @@
 				$panel.removeAttr('title');
 				
 				$tab = $('<li/>').attr({
-					'id': id + '_tab' + i // create unique id for a tab
+					'id': id + '_tab' + i,
+					'role': 'tab', // assign tab role
+					'aria-controls': 'panel' + i // define which panel it controls
 
 				})
 				.text(lbl > '' ? lbl : 'Tab ' + (i + 1))
@@ -92,10 +100,18 @@
 		
 		$tabs // deselect all tabs
 			.removeClass('selected')
+			.attr({
+			    'aria-selected': false,
+			    'tabindex': -1 // remove them from tab order
+			})
 			.blur();
 		
 		$($tabs[ind]) // select specified tab
-			.addClass('selected');
+			.addClass('selected')
+			.attr({
+			    'aria-selected': true,
+			    tabindex: 0
+			});
 		
 		if (event.type) $($tabs[ind]).focus(); // move focus to current tab if reached by mouse or keyboard
 		
